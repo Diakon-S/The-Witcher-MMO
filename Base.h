@@ -6,32 +6,43 @@ class Base : public IObserver {
 private:
     int health;
     int maxUnits;
-    int defenseLevel;
-    int resources;
+    int maxBuildings;
     int currentUnitsCount;
+    int resourcesGold;
 public:
-    Base(int hp, int maxU) : health(hp), maxUnits(maxU), defenseLevel(10), resources(0), currentUnitsCount(0) {}
+    Base(int hp, int maxU, int maxB) : health(hp), maxUnits(maxU), maxBuildings(maxB), currentUnitsCount(0), resourcesGold(0) {}
+
+    int getMaxUnits() const { return maxUnits; }
+    int getMaxBuildings() const { return maxBuildings; }
+    int getHealth() const { return health; }
+
+    void takeDamage(int amount) {
+        health -= amount;
+        if (health < 0) health = 0;
+        std::cout << "[БАЗА] Получен урон: " << amount << "! Осталось HP: " << health << "\n";
+    }
+
+    bool isDestroyed() const { return health <= 0; }
 
     void onUnitEvent(const UnitEvent& event) override {
         if (event.eventType == UnitEvent::Type::Created) {
             currentUnitsCount++;
-        }
-        else if (event.eventType == UnitEvent::Type::Damaged) {
-            std::cout << "[БАЗА] Зафиксирован урон по юниту " << event.unitName << ": -" << event.value << " HP.\n";
+            std::cout << "[БАЗА] Создан юнит: " << event.unitName << "\n";
         }
         else if (event.eventType == UnitEvent::Type::Destroyed) {
             currentUnitsCount--;
-            std::cout << "[БАЗА] Юнит " << event.unitName << " уничтожен. Освобожден слот!\n";
+            std::cout << "[БАЗА] Юнит " << event.unitName << " уничтожен!\n";
+        }
+        else if (event.eventType == UnitEvent::Type::Damaged) {
+            std::cout << "[БАЗА] Юнит " << event.unitName << " получил " << event.value << " урона.\n";
         }
         else if (event.eventType == UnitEvent::Type::ResourcesCollected) {
-            resources += event.value;
-            std::cout << "[БАЗА] Получено ресурсов: " << event.value << ". Всего: " << resources << "\n";
+            resourcesGold += event.value;
+            std::cout << "[БАЗА] Собрано " << event.value << " золота. (Всего: " << resourcesGold << ")\n";
         }
     }
 
     void printStatus() const {
-        std::cout << "=== СТАТУС БАЗЫ ===\n"
-            << "HP: " << health << " | Юнитов: " << currentUnitsCount << "/" << maxUnits
-            << " | Ресурсы: " << resources << "\n";
+        std::cout << "База HP: " << health << " | Юниты: " << currentUnitsCount << "/" << maxUnits << " | Золото: " << resourcesGold;
     }
 };

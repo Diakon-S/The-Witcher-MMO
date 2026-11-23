@@ -24,7 +24,6 @@ public:
     int getColor() const override { return Color::Green; }
     Terrain* clone() const override { return new Plains(*this); }
 };
-
 class Swamp : public Terrain {
 public:
     bool isPassable(UnitType) const override { return true; }
@@ -34,15 +33,23 @@ public:
     int getColor() const override { return Color::Blue; }
     Terrain* clone() const override { return new Swamp(*this); }
 };
-
 class Mountains : public Terrain {
 public:
-    bool isPassable(UnitType type) const override { return type == UnitType::Flying; }
+    bool isPassable(UnitType type) const override { return type == UnitType::Scout; }
     double getSpeedModifier(UnitType) const override { return 1.0; }
     double getDefenseBonus(UnitType) const override { return 10.0; }
     char getSymbol() const override { return '^'; }
     int getColor() const override { return Color::Gray; }
     Terrain* clone() const override { return new Mountains(*this); }
+};
+class Forest : public Terrain {
+public:
+    bool isPassable(UnitType type) const override { return type != UnitType::Tank; }
+    double getSpeedModifier(UnitType) const override { return 0.5; }
+    double getDefenseBonus(UnitType) const override { return 5.0; }
+    char getSymbol() const override { return '&'; }
+    int getColor() const override { return Color::DarkGreen; }
+    Terrain* clone() const override { return new Forest(*this); }
 };
 
 class TerrainProxy : public Terrain {
@@ -58,7 +65,8 @@ public:
     ~TerrainProxy() override { delete realTerrain; }
 
     bool isPassable(UnitType type) const override {
-        return type == UnitType::Flying ? true : realTerrain->isPassable(type);
+        if (type == UnitType::Scout) return true;
+        return realTerrain->isPassable(type);
     }
     double getSpeedModifier(UnitType type) const override { return realTerrain->getSpeedModifier(type); }
     double getDefenseBonus(UnitType type) const override { return realTerrain->getDefenseBonus(type); }
